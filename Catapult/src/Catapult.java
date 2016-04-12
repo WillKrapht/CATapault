@@ -1,9 +1,13 @@
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.*;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 
 public class Catapult extends JPanel implements ActionListener, MouseListener{
 	private Image catapultBody;
@@ -23,6 +27,11 @@ public class Catapult extends JPanel implements ActionListener, MouseListener{
 	public Catapult(){
 		fulcrum = new Point(0, getHeight()-groundHeight);
 		catapultLoc = new Point(0, getHeight()-groundHeight-catapultBody.getHeight(null));
+		
+		try {
+		    catapultBody = ImageIO.read(new File("Catapult\\Pics\\Catapult.jpg"));
+		} catch (IOException e) {
+		}
 		
 		runTime = new Timer(10, this);
 		setBackground(sky);
