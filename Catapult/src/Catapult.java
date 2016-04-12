@@ -3,13 +3,17 @@ import javax.swing.*;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.geom.*;
 
 public class Catapult extends JPanel implements ActionListener, MouseListener{
 	private Image catapultBody;
+	private Image catapultArm;
+	
 	private double direction;
 	private double releaseAngle; //angle of arm (orthogonal to velocity)
 	private int magnitude;
-	private Timer time;
+	private Timer runTime;
+	private Timer animationTime;
 	
 	private Point fulcrum;
 	private Point catapultLoc;
@@ -20,16 +24,29 @@ public class Catapult extends JPanel implements ActionListener, MouseListener{
 		fulcrum = new Point(0, getHeight()-groundHeight);
 		catapultLoc = new Point(0, getHeight()-groundHeight-catapultBody.getHeight(null));
 		
-		time = new Timer(10, this);
+		runTime = new Timer(10, this);
 		setBackground(sky);
+		
+		animationTime = new Timer(25, new ActionListener(){
+			public void actionPerformed(ActionEvent e){
+				direction -= Math.PI/12;
+				if(direction>=releaseAngle){
+					direction = releaseAngle;
+					animationTime.stop();
+				}
+				repaint();
+			}
+		});
 	}
 	
-	public void startLaunch(){
+	public void startLaunch(Image catInCatapult){
+		catapultArm = catInCatapult;
 		releaseAngle = Math.PI/4;
 	}
 	
-	public int[] getReleaseVelocity(){
-		
+	public double[] getReleaseVelocity(){
+		double[] releaseV = {Math.cos(releaseAngle)*magnitude, Math.sin(releaseAngle)*magnitude};
+		return releaseV;
 	}
 
 	private void calculateAngle(){
@@ -55,23 +72,32 @@ public class Catapult extends JPanel implements ActionListener, MouseListener{
 		g.setColor(new Color(0, 102, 0));
 		g.fill3DRect(0, getHeight() - groundHeight, getWidth(), getHeight(), false);
 		
-		//draw catapult body
-		Graphics2D g2 = (Graphics2D)g;
-		g2.drawImage(catapultBody, (int)catapultLoc.getX(), (int)catapultLoc.getY(), sky, null);
-		
 		//draw catapultArm
+		Graphics2D g2 = (Graphics2D)g;
+		AffineTransform notRotated = g2.getTransform();
+		g2.rotate(direction);
+		g2.drawImage(catapultArm, (int)fulcrum.getX()-catapultArm.getWidth(null), 
+				(int)fulcrum.getY()-catapultArm.getHeight(null), sky, null);
+		g2.setTransform(notRotated);
+		
+		//draw catapult body on top of arm
+		g2.drawImage(catapultBody, (int)catapultLoc.getX(), 
+				(int)catapultLoc.getY(), sky, null);
 	}
 	
 	public void mouseClicked(MouseEvent arg0) {}
 	public void mouseEntered(MouseEvent arg0) {}
 	public void mouseExited(MouseEvent arg0) {}
 	public void mousePressed(MouseEvent arg0) {
-		time.start();
+		runTime.start();
 	}
 	public void mouseReleased(MouseEvent arg0) {
-		time.stop();
+		runTime.stop();
 		calculateMagnitude();
+		
 		//run launch animation
+		animationTime.start();
+		
 		//call launch complete in window
 	}
 	
